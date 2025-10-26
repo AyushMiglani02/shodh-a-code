@@ -1,0 +1,58 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: shodhacode
+      POSTGRES_USER: shodh
+      POSTGRES_PASSWORD: shodhpass
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shodh -d shodhacode"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build: ./backend
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/shodhacode
+      SPRING_DATASOURCE_USERNAME: shodh
+      SPRING_DATASOURCE_PASSWORD: shodhpass
+      # path where backend writes temp source per submission
+      JUDGE_WORKDIR: /work
+      # image used to run user code
+      JUDGE_IMAGE: shodhacode/judge:latest
+      # time limit seconds
+      JUDGE_TIME_LIMIT_SECONDS: "3"
+      # memory limit for the run container
+      JUDGE_MEMORY: 256m
+      # cpu limit
+      JUDGE_CPUS: "0.5"
+    depends_on:
+      db:
+        condition: service_healthy
+    # give backend access to Docker socket to run judge containers
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - backend-work:/work
+    ports:
+      - "8080:8080"
+
+  judge-image:
+    build:
+      context: ./judge
+    image: shodhacode/judge:latest
+
+  frontend:
+    build: ./frontend
+    environment:
+      NEXT_PUBLIC_API_BASE: http://localhost:8080
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  backend-work:
