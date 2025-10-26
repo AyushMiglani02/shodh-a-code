@@ -1,4 +1,4 @@
-````markdown
+
 # Shodh-a-Code — Lightweight Real-Time Coding Contest Platform
 
 Spring Boot + Postgres backend with a Dockerized live judge, and a Next.js frontend. One `docker-compose.yml` runs everything locally.
@@ -63,11 +63,10 @@ Goal: Students join a contest by code, submit code, and watch a live leaderboard
 - Internet access to pull images
 
 **Steps**
-```bash
 # from the repo root
 docker compose build
 docker compose up
-````
+
 
 **Open**
 
